@@ -1,0 +1,15 @@
+node_modules/
+npm-debug.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+*.log
+dist/
+build/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.prettierignore

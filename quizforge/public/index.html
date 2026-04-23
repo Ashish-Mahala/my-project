@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="QuizForge — Build, play, and master quizzes on JavaScript, Node.js, MongoDB, Express, TypeScript, HTML/CSS and more. Real-time leaderboard powered by Socket.IO." />
+  <title>QuizForge — Build & Play Quizzes</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Google Fonts (Unit I: HTML5 Foundations — Multimedia elements) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <!-- Socket.IO client (Unit III: Socket Services in Node.js) -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- ── ANIMATED BACKGROUND ELEMENTS (Unit I: CSS3 animations, positioning) ── -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- ── SVG GRADIENT DEFINITIONS (for score ring) ── -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#8b5cf6" />
+        <stop offset="100%" stop-color="#06d6a0" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- ── CONFETTI CANVAS (Unit II: Canvas API — dynamic styling) ── -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- ── TOP NAVIGATION (Unit I: Semantic HTML, nav element) ── -->
+  <header class="topbar" id="topbar">
+    <div class="logo" onclick="showScreen('home')">Quiz<span>Forge</span></div>
+    <nav class="nav-links" id="mainNav" aria-label="Main Navigation">
+      <button class="nav-btn active" data-screen="home" onclick="showScreen('home')">Discover</button>
+      <button class="nav-btn" data-screen="builder" onclick="showScreen('builder')">Build</button>
+      <button class="nav-btn" data-screen="scores" onclick="showScreen('scores')">Leaderboard</button>
+    </nav>
+    <div class="nav-right" id="navRight">
+      <button class="btn btn-outline btn-sm" onclick="showScreen('login')">Login</button>
+      <button class="btn btn-primary btn-sm" onclick="showScreen('register')">Sign Up</button>
+    </div>
+    <div class="nav-right hidden" id="navUser">
+      <span class="user-badge" id="navUsername">User</span>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- ── SCREENS ── -->
+  <main id="app">
+
+    <!-- HOME / DISCOVER -->
+    <section id="screen-home" class="screen active">
+
+      <!-- Hero Section (Unit I: HTML5 document structure, semantic elements) -->
+      <div class="hero" id="heroSection">
+        <h1 class="hero-title">
+          Build & Master<br/>
+          <span class="word-quiz">Quiz</span><span class="word-forge">Forge</span> Challenges
+        </h1>
+        <p class="hero-sub">
+          Sharpen your skills across JavaScript, Node.js, MongoDB, Express, TypeScript & more — with timed quizzes, instant feedback, and a real-time leaderboard.
+        </p>
+        <div class="hero-stats" id="heroStats">
+          <div class="hero-stat">
+            <div class="hero-stat-num purple" id="statQuizzes">7</div>
+            <div class="hero-stat-lbl">Quizzes</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num cyan" id="statQuestions">34</div>
+            <div class="hero-stat-lbl">Questions</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num green" id="statTopics">7</div>
+            <div class="hero-stat-lbl">Topics</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-divider"></div>
+
+      <div class="screen-header">
+        <div>
+          <h2 class="screen-title">Discover Quizzes</h2>
+          <p class="screen-sub">Filter by topic or difficulty and sharpen your skills</p>
+        </div>
+        <div class="live-badge" id="liveBadge"><span class="dot"></span> <span id="liveCount">0</span> online</div>
+      </div>
+
+      <!-- Filters (Unit II: Event Handling, Unit IV: DOM Manipulation) -->
+      <div class="filter-row">
+        <div class="filter-group" id="topicFilters">
+          <button class="chip active" data-topic="all" onclick="setFilter('topic','all',this)">All Topics</button>
+          <button class="chip" data-topic="JavaScript" onclick="setFilter('topic','JavaScript',this)">JavaScript</button>
+          <button class="chip" data-topic="HTML/CSS" onclick="setFilter('topic','HTML/CSS',this)">HTML / CSS</button>
+          <button class="chip" data-topic="Node.js" onclick="setFilter('topic','Node.js',this)">Node.js</button>
+          <button class="chip" data-topic="TypeScript" onclick="setFilter('topic','TypeScript',this)">TypeScript</button>
+          <button class="chip" data-topic="MongoDB" onclick="setFilter('topic','MongoDB',this)">MongoDB</button>
+          <button class="chip" data-topic="Express" onclick="setFilter('topic','Express',this)">Express</button>
+        </div>
+        <div class="filter-group" id="diffFilters">
+          <button class="chip active" data-diff="all" onclick="setFilter('diff','all',this)">All Levels</button>
+          <button class="chip chip-easy" data-diff="easy" onclick="setFilter('diff','easy',this)">Easy</button>
+          <button class="chip chip-medium" data-diff="medium" onclick="setFilter('diff','medium',this)">Medium</button>
+          <button class="chip chip-hard" data-diff="hard" onclick="setFilter('diff','hard',this)">Hard</button>
+        </div>
+      </div>
+      <div class="quiz-grid" id="quizGrid"></div>
+
+      <!-- Keyboard Shortcuts hint (Unit II: Event handling) -->
+      <div class="keyboard-hint" style="margin-top: 32px;">
+        <div class="kb-item"><span class="kb-key">1</span>–<span class="kb-key">4</span> Answer</div>
+        <div class="kb-item"><span class="kb-key">Enter</span> Next</div>
+        <div class="kb-item"><span class="kb-key">Esc</span> Exit quiz</div>
+      </div>
+    </section>
+
+    <!-- QUIZ PLAYING -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-topbar">
+        <button class="btn btn-ghost btn-sm" onclick="exitQuiz()">← Exit</button>
+        <div class="quiz-title-bar" id="quizTitleBar"></div>
+        <div class="timer-wrap">
+          <svg class="timer-svg" viewBox="0 0 60 60">
+            <circle class="timer-track" cx="30" cy="30" r="26"/>
+            <circle class="timer-fill" id="timerArc" cx="30" cy="30" r="26"/>
+          </svg>
+          <span class="timer-num" id="timerNum">30</span>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="question-card" id="questionCard">
+        <div class="q-meta" id="qMeta">Question 1 of 5</div>
+        <div class="q-text" id="qText">Loading...</div>
+      </div>
+      <div class="options-grid" id="optionsGrid"></div>
+      <div class="explanation-box hidden" id="explanationBox">
+        <div class="exp-label">💡 Explanation</div>
+        <p id="expText"></p>
+        <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Next Question →</button>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="screen-result" class="screen">
+      <div class="result-wrap">
+        <div class="score-ring-wrap">
+          <svg class="score-ring-svg" viewBox="0 0 140 140">
+            <circle class="ring-track" cx="70" cy="70" r="62"/>
+            <circle class="ring-fill" id="scoreRingFill" cx="70" cy="70" r="62"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-score" id="ringScore">0%</div>
+            <div class="ring-label">SCORE</div>
+          </div>
+        </div>
+        <h2 class="result-title" id="resultTitle">Well done!</h2>
+        <p class="result-sub" id="resultSub">You've completed the quiz.</p>
+        <div class="result-stats">
+          <div class="rstat"><div class="rstat-num green" id="rCorrect">0/0</div><div class="rstat-lbl">Correct</div></div>
+          <div class="rstat"><div class="rstat-num purple" id="rTime">0s</div><div class="rstat-lbl">Avg Time</div></div>
+          <div class="rstat"><div class="rstat-num yellow" id="rStreak">0</div><div class="rstat-lbl">Best Streak</div></div>
+        </div>
+        <div class="result-actions">
+          <button class="btn btn-outline" onclick="showScreen('home')">Browse</button>
+          <button class="btn btn-primary" onclick="retakeQuiz()">Try Again</button>
+          <button class="btn btn-outline" onclick="showScreen('scores')">Leaderboard</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ BUILDER (Unit IV: DOM Manipulation, Dynamic Content) -->
+    <section id="screen-builder" class="screen">
+      <div class="screen-header">
+        <div>
+          <h1 class="screen-title">Quiz Builder</h1>
+          <p class="screen-sub">Create and publish a quiz for others to attempt</p>
+        </div>
+      </div>
+      <div class="builder-meta card">
+        <div class="form-row">
+          <div class="form-group full">
+            <label class="label">Quiz Title</label>
+            <input class="input" id="bTitle" placeholder="e.g. JavaScript Closures Deep Dive" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Topic</label>
+            <select class="input select" id="bTopic">
+              <option>JavaScript</option><option>HTML/CSS</option><option>Node.js</option>
+              <option>TypeScript</option><option>MongoDB</option><option>Express</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Difficulty</label>
+            <select class="input select" id="bDiff">
+              <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Timer / Question</label>
+            <input class="input" type="number" id="bTimer" value="30" min="10" max="120" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label class="label">Description (optional)</label>
+            <textarea class="input textarea" id="bDesc" placeholder="Brief description of this quiz..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div id="builderQList"></div>
+      <button class="btn btn-dashed full-width" onclick="addBuilderQ()">+ Add Question</button>
+      <div style="height:14px"></div>
+      <button class="btn btn-success full-width" onclick="publishQuiz()">🚀 Publish Quiz</button>
+    </section>
+
+    <!-- LEADERBOARD / SCORES (Unit VI: Testing RestAPI) -->
+    <section id="screen-scores" class="screen">
+      <div class="screen-header">
+        <div>
+          <h1 class="screen-title">Leaderboard</h1>
+          <p class="screen-sub">Top scores — updated in real-time via Socket.IO</p>
+        </div>
+      </div>
+      <div class="global-stats" id="globalStats"></div>
+      <div class="board-header">
+        <span>Rank</span><span>Quiz</span><span>Score</span><span>Time</span>
+      </div>
+      <div id="boardList"></div>
+    </section>
+
+    <!-- LOGIN (Unit III: JWT Authentication) -->
+    <section id="screen-login" class="screen">
+      <div class="auth-wrap">
+        <div class="auth-card card">
+          <div class="auth-logo">Quiz<span>Forge</span></div>
+          <h2 class="auth-title">Welcome back</h2>
+          <div class="form-group">
+            <label class="label">Email</label>
+            <input class="input" type="email" id="loginEmail" placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="label">Password</label>
+            <input class="input" type="password" id="loginPassword" placeholder="••••••••" />
+          </div>
+          <button class="btn btn-primary full-width" onclick="login()">Log In</button>
+          <p class="auth-switch">Don't have an account? <a onclick="showScreen('register')">Sign Up</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTER (Unit III: JWT Authentication, Security) -->
+    <section id="screen-register" class="screen">
+      <div class="auth-wrap">
+        <div class="auth-card card">
+          <div class="auth-logo">Quiz<span>Forge</span></div>
+          <h2 class="auth-title">Create account</h2>
+          <div class="form-group">
+            <label class="label">Username</label>
+            <input class="input" id="regUsername" placeholder="cooluser123" />
+          </div>
+          <div class="form-group">
+            <label class="label">Email</label>
+            <input class="input" type="email" id="regEmail" placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="label">Password</label>
+            <input class="input" type="password" id="regPassword" placeholder="min. 6 characters" />
+          </div>
+          <button class="btn btn-primary full-width" onclick="register()">Create Account</button>
+          <p class="auth-switch">Already have an account? <a onclick="showScreen('login')">Log In</a></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER (Unit I: Semantic HTML) ── -->
+  <footer class="app-footer">
+    Built with Node.js, Express, MongoDB, Socket.IO & Vanilla JS — Covering all syllabus topics ✨
+  </footer>
+
+  <!-- TOAST NOTIFICATION (appended by JS) -->
+  <div id="toastContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/builder.js"></script>
+  <script src="js/scores.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
