@@ -32,7 +32,6 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      bufferCommands: false,
     }).then((m) => {
       console.log(`MongoDB Connected: ${m.connection.host}`);
       return m;

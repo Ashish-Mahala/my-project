@@ -18,10 +18,13 @@ connectDB();
 // Middleware to ensure DB connection is ready before API routes (serverless)
 const ensureDB = async (req, res, next) => {
   try {
-    await connectDB();
+    const conn = await connectDB();
+    if (!conn) {
+      return res.status(503).json({ success: false, message: 'Database unavailable. Please try again.' });
+    }
     next();
   } catch (err) {
-    res.status(503).json({ success: false, message: 'Database unavailable' });
+    res.status(503).json({ success: false, message: 'Database connection failed' });
   }
 };
 
