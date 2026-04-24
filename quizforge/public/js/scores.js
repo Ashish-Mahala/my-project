@@ -55,10 +55,8 @@ const Scores = (() => {
       return `
         <div class="board-row ${i === 0 ? 'gold' : ''}">
           <div><span class="rank-badge ${rankClass}">${rankLabel}</span></div>
-          <div class="br-quiz">
-            <div class="br-title">${s.quizTitle || s.quiz || 'Unknown Quiz'}</div>
-            <div class="br-user">${s.username || 'Guest'} &nbsp;·&nbsp; <span class="tag tag-topic" style="font-size:10px;padding:1px 7px">${s.topic || ''}</span></div>
-          </div>
+          <div class="br-quiz">${s.quizTitle || s.quiz || 'Unknown Quiz'}</div>
+          <div class="br-user">${s.username || 'Guest'}<br><span class="tag tag-topic" style="font-size:10px;padding:1px 7px">${s.topic || ''}</span></div>
           <div class="br-score" style="color:${scoreColor}">${s.score}%</div>
           <div class="br-time">${timeStr}</div>
         </div>`;

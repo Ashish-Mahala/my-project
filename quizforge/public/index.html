@@ -14,11 +14,7 @@
 </head>
 <body>
 
-  <!-- ── ANIMATED BACKGROUND ELEMENTS (Unit I: CSS3 animations, positioning) ── -->
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="grid-overlay"></div>
+
 
   <!-- ── SVG GRADIENT DEFINITIONS (for score ring) ── -->
   <svg width="0" height="0" style="position:absolute">
@@ -41,6 +37,11 @@
       <button class="nav-btn" data-screen="builder" onclick="showScreen('builder')">Build</button>
       <button class="nav-btn" data-screen="scores" onclick="showScreen('scores')">Leaderboard</button>
     </nav>
+    <div class="nav-theme-toggle">
+      <button id="themeToggleBtn" title="Toggle dark/light mode" aria-label="Toggle theme">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
     <div class="nav-right" id="navRight">
       <button class="btn btn-outline btn-sm" onclick="showScreen('login')">Login</button>
       <button class="btn btn-primary btn-sm" onclick="showScreen('register')">Sign Up</button>
@@ -224,14 +225,15 @@
     <!-- LEADERBOARD / SCORES (Unit VI: Testing RestAPI) -->
     <section id="screen-scores" class="screen">
       <div class="screen-header">
-        <div>
+        <div style="display:flex;align-items:center;gap:12px;">
           <h1 class="screen-title">Leaderboard</h1>
-          <p class="screen-sub">Top scores — updated in real-time via Socket.IO</p>
+          <span class="info-icon" title="The leaderboard shows the top scores for all quizzes. Scores are ranked by percentage, then by fastest average time.">ℹ️</span>
         </div>
+        <p class="screen-sub">Top scores — updated in real-time via Socket.IO</p>
       </div>
       <div class="global-stats" id="globalStats"></div>
       <div class="board-header">
-        <span>Rank</span><span>Quiz</span><span>Score</span><span>Time</span>
+        <span>🏅 Rank</span><span>Quiz</span><span>User</span><span>Score</span><span>Time</span>
       </div>
       <div id="boardList"></div>
     </section>
@@ -297,5 +299,30 @@
   <script src="js/scores.js"></script>
   <script src="js/socket.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    // Theme toggle logic
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    function setTheme(mode) {
+      if (mode === 'light') {
+        document.documentElement.classList.add('light-theme');
+        themeIcon.textContent = '☀️';
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.remove('light-theme');
+        themeIcon.textContent = '🌙';
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+    themeBtn.onclick = () => {
+      const isLight = document.documentElement.classList.toggle('light-theme');
+      setTheme(isLight ? 'light' : 'dark');
+    };
+    // On load, set theme from localStorage
+    (function() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') setTheme('light');
+    })();
+  </script>
 </body>
 </html>
