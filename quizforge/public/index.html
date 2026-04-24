@@ -10,7 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <!-- Socket.IO client (Unit III: Socket Services in Node.js) -->
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- CDN fallback for serverless deployment (Vercel); local server auto-serves this in dev -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 

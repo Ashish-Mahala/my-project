@@ -123,19 +123,27 @@ app.get('*', (req, res) => {
 app.use(errorHandler);
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`
+// Only listen when running directly (not on Vercel serverless)
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`
   ╔════════════════════════════════════════╗
   ║   QuizForge Server Running             ║
   ║   http://localhost:${PORT}               ║
   ║   Environment: ${process.env.NODE_ENV || 'development'}          ║
   ╚════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
 
 // Handle unhandled promise rejections (Node.js best practice)
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err.message);
-  server.close(() => process.exit(1));
+  if (!process.env.VERCEL) {
+    server.close(() => process.exit(1));
+  }
 });
+
+// Export app for Vercel serverless deployment
+module.exports = app;
