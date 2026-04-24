@@ -12,7 +12,18 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
 // ─── Connect to MongoDB ───────────────────────────────────────────────────────
+// Start connection immediately (for warm invocations)
 connectDB();
+
+// Middleware to ensure DB connection is ready before API routes (serverless)
+const ensureDB = async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(503).json({ success: false, message: 'Database unavailable' });
+  }
+};
 
 // ─── Initialize Express ───────────────────────────────────────────────────────
 const app = express();
@@ -105,9 +116,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 // Unit II: Implementing HTTP Services — GET, POST, Router, Error Handling
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/quizzes', require('./routes/quizzes'));
-app.use('/api/scores', require('./routes/scores'));
+app.use('/api/auth', ensureDB, require('./routes/auth'));
+app.use('/api/quizzes', ensureDB, require('./routes/quizzes'));
+app.use('/api/scores', ensureDB, require('./routes/scores'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
